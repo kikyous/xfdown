@@ -34,7 +34,10 @@ class XF:
 
    # __proxy="219.246.90.196:7777"
     __downpath = os.path.expanduser("~/下载")
-    os.makedirs(__downpath)
+    try:
+        os.makedirs(__downpath)
+    except:
+        pass
 
     __headers ={
                 'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:11.0) Gecko/20100101 Firefox/11.0',\
