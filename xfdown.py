@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import hashlib
+import subprocess
 try:
     import urllib as parse
     import urllib2 as request
@@ -295,9 +296,7 @@ class XF:
         self.__gethttp([num+1])
         print [self.filename[num]]
         print("正在缓冲，马上开始播放")
-        #sys.exit()
         filename=_(self.filename[num])
-        import subprocess
         arg=['wget', '-c', '-O', filename, '--header', 'Cookie:FTN5K=%s'%self.filecom[num], self.filehttp[num]]
 
         subprocess.Popen(arg,cwd=_(self.__downpath))
