@@ -11,7 +11,6 @@ except:
     from urllib import parse,request
     from http import cookiejar
 import random,time
-#import threading as th
 import json,os,sys,re
 try:
     raw_input
@@ -33,9 +32,9 @@ class XF:
    # __pswd = ""
 
 
-    __proxy="219.246.90.196:7777"
+   # __proxy="219.246.90.196:7777"
     __downpath = os.path.expanduser("~/下载")
-   # __proxy=None
+    os.makedirs(__downpath)
 
     __headers ={
                 'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:11.0) Gecko/20100101 Firefox/11.0',\
@@ -251,7 +250,7 @@ class XF:
                 return
             #print lists
             self.__gethttp(lists)
-            f = open("%s/xuanfeng.down"%self.__downpath,'w')
+            f = open("%s/.xfd"%self.__downpath,'w')
             for num in lists:
                 try:
                     num=int(num)-1
@@ -312,10 +311,10 @@ class XF:
             调用aria2进行下载
 
             """
-            if self.__proxy==None:
-                os.system("aria2c -i xuanfeng.down --max-connection-per-server=4 --min-split-size=1M --split=4")
+            if not hasattr(self,"__proxy") or self.__proxy==None:
+                os.system("cd %s && aria2c --max-connection-per-server=4 --min-split-size=2M -i .xfd "% self.__downpath)
             else:
-                os.system("cd %s && export http_proxy=%s && aria2c --max-connection-per-server=4 --min-split-size=2M -i xuanfeng.down "% (self.__downpath,self.__proxy))
+                os.system("cd %s && export http_proxy=%s && aria2c --max-connection-per-server=4 --min-split-size=2M -i .xfd "% (self.__downpath,self.__proxy))
                     
     def __Login(self):
         """
