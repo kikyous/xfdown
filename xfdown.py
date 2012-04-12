@@ -257,8 +257,11 @@ class XF:
             for num in lists:
                 try:
                     num=int(num)-1
-                    f.write(self.filehttp[num] + '\n  header=Cookie: FTN5K=' + self.filecom[num] +
-                    '\n  continue=true\n  max-conection-per-server=5\n   parameterized-uri=true\n\n')
+                    f.write(self.filehttp[num])
+                    f.write("\n  header=Cookie: FTN5K=%s" %self.filecom[num])
+                    if hasattr(self,"__proxy") and self.__proxy != None:
+                        f.write("\n  --all-proxy='%s'" %self.__proxy)
+                    f.write("\n  max-conection-per-server=5\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
                 except:
                     print (num+1 ,_(" 任务建立失败!"))
             f.close
@@ -314,10 +317,8 @@ class XF:
             调用aria2进行下载
 
             """
-            if not hasattr(self,"__proxy") or self.__proxy==None:
-                os.system("cd %s && aria2c --max-connection-per-server=4 --min-split-size=2M -i .xfd "% self.__downpath)
-            else:
-                os.system("cd %s && export http_proxy=%s && aria2c --max-connection-per-server=4 --min-split-size=2M -i .xfd "% (self.__downpath,self.__proxy))
+            # if not hasattr(self,"__proxy") or self.__proxy==None:
+            os.system("cd %s && aria2c -i .xfd "% self.__downpath)
                     
     def __Login(self):
         """
