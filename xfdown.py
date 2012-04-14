@@ -22,15 +22,38 @@ def _(string):
     except:
         return string
 
+
+class LWPCookieJar(cookiejar.LWPCookieJar):
+    # def __init__(self,police=None):
+        # cookiejar.LWPCookieJar.__init__(police)
+    def save(self, filename=None, ignore_discard=False, ignore_expires=False,userinfo=None):
+        if filename is None:
+            if self.filename is not None: filename = self.filename
+            else: raise ValueError(MISSING_FILENAME_TEXT)
+
+        if not os.path.exists(filename):
+            open(filename, "w").close()
+        f = open(filename, "rw+")
+        try:
+            # There really isn't an LWP Cookies 2.0 format, but this indicates
+            # that there is extra information in here (domain_dot and
+            # port_spec) while still being compatible with libwww-perl, I hope.
+            if userinfo:
+                f.seek(0)
+                f.write("#LWP-Cookies-2.0\n")
+                f.write("#%s\n"%userinfo)
+            else:
+                f.seek(len(''.join(f.readlines()[:2])))
+            f.write(self.as_lwp_str(ignore_discard, ignore_expires))
+        finally:
+            f.close()
+
+
+
 class XF:
     """
      Login QQ
     """
-
-   # __qq = ""
-
-   # __pswd = ""
-
 
     proxy="219.246.90.196:7777"
     __downpath = os.path.expanduser("~/下载")
@@ -46,26 +69,28 @@ class XF:
     __verifycode = None
     __http = {}
     __RE=re.compile("\d+")
-    def __preprocess(self,password,verifycode):
+    def __preprocess(self,password=None,verifycode=None,hashpasswd=None):
         """
             QQ密码加密部份
         """
+        if hashpasswd:
+            return hashlib.md5( (hashpasswd+ (verifycode).upper()).encode('utf-8')).hexdigest().upper()
+        else:
+            return hashlib.md5( (self.__md5_3((password).encode('utf-8')) + (verifycode).upper()).encode('utf-8')).hexdigest().upper()
 
-        return hashlib.md5( (self.__md5_3((password).encode('utf-8')) + (verifycode).upper()).encode('utf-8')).hexdigest().upper()
-
-        pass
 
     def __md5_3(self,str):
         """
             QQ密码md5_3部份
         """
-        return hashlib.md5(hashlib.md5(hashlib.md5(str).digest()).digest()).hexdigest().upper()
+        self.hashpasswd=hashlib.md5(hashlib.md5(hashlib.md5(str).digest()).digest()).hexdigest().upper()
+        return self.hashpasswd
         pass
     def __init__(self):
         """
             初始化模拟进程
         """
-        self.__http['cj'] = cookiejar.LWPCookieJar(self.__cookiepath)
+        self.__http['cj'] = LWPCookieJar(self.__cookiepath)
         if os.path.isfile(self.__cookiepath):
             self.__http['cj'].load(ignore_discard=True, ignore_expires=True)
 
@@ -89,7 +114,11 @@ class XF:
         except UnicodeDecodeError:
             str = fp.read()
         if savecookie == True:
-            self.__http['cj'].save(ignore_discard=True, ignore_expires=True)
+            if hasattr(self,"pswd"):
+                self.__http['cj'].save(ignore_discard=True, ignore_expires=True,userinfo="%s#%s"%(self.__qq,self.hashpasswd))
+            else:
+                self.__http['cj'].save(ignore_discard=True, ignore_expires=True)
+
         fp.close()
         return str
         pass
@@ -114,31 +143,21 @@ class XF:
         return str
         pass
     def __request_login(self):
-        """
-            @url:http://ptlogin2.qq.com/login
-            @params:{u:644826377
-                    p:73DA5C1145E0F82247F60B3A17B89E6A   verifycode:!S10   webqq_type:10
-                    remember_uin:1  login2qq:1  aid:1003903  u1:http://webqq.qq.com/loginproxy.html?login2qq=1&webqq_type=10
-                    h:1  ptredirect:0   ptlang:2052  from_ui:1   pttype:1  dumy:
-                    fp:loginerroralert   action:1-24-62651  mibao_css:m_webqq}
-        """
-        urlv = 'http://ptlogin2.qq.com/login?u='+('%s' %  self.__qq) +'&' +  'p=' + ('%s' % self.__pswd) +  '&verifycode='+ ('%s' % self.__verifycode[1]) +'&aid=567008010' +  "&u1=http%3A%2F%2Flixian.qq.com%2Fmain.html" +  '&h=1&ptredirect=1&ptlang=2052&from_ui=1&dumy=&fp=loginerroralert'
+        urlv = 'http://ptlogin2.qq.com/login?u='+('%s' %  self.__qq) +'&' +  'p=' + ('%s' % self.passwd) +  '&verifycode='+ ('%s' % self.__verifycode[1]) +'&aid=567008010' +  "&u1=http%3A%2F%2Flixian.qq.com%2Fmain.html" +  '&h=1&ptredirect=1&ptlang=2052&from_ui=1&dumy=&fp=loginerroralert'
         str = self.__request(url = urlv,savecookie=True)
         if str.find(_('登录成功')) != -1:
-            #执行二次登录
-           # self.__ptwebqq = self.__getcookies('ptwebqq')
-            #self.__skey = self.__getcookies('skey')
             self.__getlogin()
             self.main()
         elif str.find(_('不正确')) != -1:
             print('你输入的帐号或者密码不正确，请重新输入。')
+            self.__Login(True)
         else:
             print('登录失败')
-        pass
+            print str
+            self.__Login(True)
 
     def main(self):
         self.__getlist()
-        #self.__gethttp()
         self.__chosetask()
         self.__getdownload()
 
@@ -318,20 +337,35 @@ class XF:
             # if not hasattr(self,"proxy") or self.proxy==None:
             os.system("cd %s && aria2c -i .xfd"% self.__downpath)
                     
-    def __Login(self):
+    def __Login(self,needInput=False):
         """
         登录
         """
-        if not hasattr(self,"__qq"):
-            self.__qq = raw_input('QQ号：')
-            self.__pswd = raw_input('QQ密码：')
+        if not needInput:
+            try:
+                f=open(self.__cookiepath)
+                line=f.readlines()[1].strip()
+                lists=line.split("#")
+                self.__qq=lists[1]
+                self.hashpasswd=lists[2]
+            finally:
+                f.close()
+        if not hasattr(self,"hashpasswd") or needInput:
+            self.__qq = raw_input('QQ号码：')
+            self.pswd = raw_input('QQ密码：')
+            self.pswd = self.pswd.strip()
         self.__qq = self.__qq.strip()
-        self.__pswd = self.__pswd.strip()
         self.__verifycode = self.__getverifycode()
-        self.__pswd = self.__preprocess(
-            self.__pswd,#密码 \
-            '%s' % self.__verifycode[1]  #验证码 \
-        )
+        if not hasattr(self,"hashpasswd") or needInput:
+            self.passwd = self.__preprocess(
+                self.pswd,#密码 \
+                '%s' % self.__verifycode[1]  #验证码 \
+            )
+        else:
+            self.passwd = self.__preprocess(
+                verifycode='%s' % self.__verifycode[1] ,
+                hashpasswd=self.hashpasswd
+            )
         print ("登录中...")
         self.__request_login()
         pass
