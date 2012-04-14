@@ -63,7 +63,7 @@ class XF:
         pass
 
     __headers ={
-                'User-Agent':'Mozilla/11.0 (X11; Ubuntu; Linux i686; rv:11.0) Gecko/20990101 Firefox/2012.0',\
+                'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:13.0) Gecko/20120414 Firefox/13.0a2',\
     }
     __cookiepath = '%s/cookie'%os.path.expanduser("~")
     __verifycode = None
@@ -109,7 +109,7 @@ class XF:
         else:
             self.__http['req'] = request.Request(url=url,headers=self.__headers)
         fp = self.__http['opener'].open(self.__http['req'])
-        print fp.headers
+        # print fp.headers
         try:
             str = fp.read().decode('utf-8')
         except UnicodeDecodeError:
@@ -138,19 +138,39 @@ class XF:
         """
             @url:http://ptlogin2.qq.com/check?uin=644826377&appid=1003903&r=0.56373973749578
         """
-        urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=1003903&r='+ ('%s' % random.Random().random())
-        urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=1003903'
+
+
+        urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=567008010&r='+ ('%s' % random.Random().random())
+       # urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'appid=567008010&r=0.449888761736'
+
         str = self.__request(url = urlv, savecookie=False)
-        str = re.findall(r'\d|(?<=\')[a-zA-Z0-9\!]{4}',str)
-        return str
-        pass
+        lists=eval(str.split("(")[1].split(")")[0])
+        print lists
+        if lists[0]=='1':
+            imgurl="http://captcha.qq.com/getimage?aid=567008010&r=%s&uin=%s&vc_type=%s"%(random.Random().random(),self.__qq,lists[1])
+            print imgurl
+            f=open("verify.jpg","wb")
+            fp = self.__http['opener'].open(imgurl)
+            f.write(fp.read())
+            f.close()
+            print("请输入验证码：")
+            verify=raw_input().strip()
+            
+        else:
+            verify=lists[1]
+        return verify
     def __request_login(self):
-        urlv = 'http://ptlogin2.qq.com/login?u='+('%s' %  self.__qq) +'&' +  'p=' + ('%s' % self.passwd) +  '&verifycode='+ ('%s' % self.__verifycode[1]) +'&aid=567008010' +  "&u1=http%3A%2F%2Flixian.qq.com%2Fmain.html" +  '&h=1&ptredirect=1&ptlang=2052&from_ui=1&dumy=&fp=loginerroralert'
+
+        urlv = 'http://ptlogin2.qq.com/login?u='+('%s' %  self.__qq) +'&' +  'p=' + ('%s' % self.passwd) +  '&verifycode='+ ('%s' % self.__verifycode) +'&aid=567008010' +  "&u1=http%3A%2F%2Flixian.qq.com%2Fmain.html" +  '&h=1&ptredirect=1&ptlang=2052&from_ui=1&dumy=&fp=loginerroralert'
         str = self.__request(url = urlv,savecookie=True)
         if str.find(_('登录成功')) != -1:
             self.__getlogin()
             self.main()
+        elif str.find(_('验证码不正确')) != -1:
+            self.__getverifycode()
+            self.__Login(False,True)
         elif str.find(_('不正确')) != -1:
+            print str
             print('你输入的帐号或者密码不正确，请重新输入。')
             self.__Login(True)
         else:
@@ -339,11 +359,11 @@ class XF:
             # if not hasattr(self,"proxy") or self.proxy==None:
             os.system("cd %s && aria2c -i .xfd"% self.__downpath)
                     
-    def __Login(self,needInput=False):
+    def __Login(self,needInput=False,verify=False):
         """
         登录
         """
-        if not needInput:
+        if not needInput and not verify:
             try:
                 f=open(self.__cookiepath)
                 line=f.readlines()[1].strip()
@@ -361,11 +381,11 @@ class XF:
         if not hasattr(self,"hashpasswd") or needInput:
             self.passwd = self.__preprocess(
                 self.pswd,#密码 \
-                '%s' % self.__verifycode[1]  #验证码 \
+                '%s' % self.__verifycode  #验证码 \
             )
         else:
             self.passwd = self.__preprocess(
-                verifycode='%s' % self.__verifycode[1] ,
+                verifycode='%s' % self.__verifycode ,
                 hashpasswd=self.hashpasswd
             )
         print ("登录中...")
