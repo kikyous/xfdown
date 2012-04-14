@@ -63,7 +63,7 @@ class XF:
         pass
 
     __headers ={
-                'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:11.0) Gecko/20100101 Firefox/11.0',\
+                'User-Agent':'Mozilla/11.0 (X11; Ubuntu; Linux i686; rv:11.0) Gecko/20990101 Firefox/2012.0',\
     }
     __cookiepath = '%s/cookie'%os.path.expanduser("~")
     __verifycode = None
@@ -98,7 +98,7 @@ class XF:
         if os.path.isfile(self.__cookiepath):
             self.main()
         else:
-            self.__Login()
+            self.__Login(True)
     def __request(self,url,method='GET',data={},savecookie=False):
         """
             请求url
@@ -109,6 +109,7 @@ class XF:
         else:
             self.__http['req'] = request.Request(url=url,headers=self.__headers)
         fp = self.__http['opener'].open(self.__http['req'])
+        print fp.headers
         try:
             str = fp.read().decode('utf-8')
         except UnicodeDecodeError:
@@ -138,6 +139,7 @@ class XF:
             @url:http://ptlogin2.qq.com/check?uin=644826377&appid=1003903&r=0.56373973749578
         """
         urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=1003903&r='+ ('%s' % random.Random().random())
+        urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=1003903'
         str = self.__request(url = urlv, savecookie=False)
         str = re.findall(r'\d|(?<=\')[a-zA-Z0-9\!]{4}',str)
         return str
