@@ -153,6 +153,7 @@ class XF:
             fp = self.__http['opener'].open(imgurl)
             f.write(fp.read())
             f.close()
+            subprocess.Popen(['xdg-open', "verify.jpg"])
             print("请输入验证码：")
             verify=raw_input().strip()
             
