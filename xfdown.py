@@ -32,7 +32,7 @@ class XF:
    # __pswd = ""
 
 
-   # __proxy="219.246.90.196:7777"
+    proxy="219.246.90.196:7777"
     __downpath = os.path.expanduser("~/下载")
     try:
         os.makedirs(__downpath)
@@ -140,7 +140,7 @@ class XF:
         self.__getlist()
         #self.__gethttp()
         self.__chosetask()
-        self.__download()
+        self.__getdownload()
 
     def getfilename_url(self,url):
         url=url.strip()
@@ -221,9 +221,9 @@ class XF:
        
     def __chosetask(self):
         print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,R刷新离线任务列表")
-        inputs=raw_input()
+        inputs=raw_input("ct #")
         if inputs=="":
-            self.__creatfile()
+            self.__getdownload()
         elif inputs.upper()=="A":
             self.__addtask()
             self.main()
@@ -237,12 +237,9 @@ class XF:
             self.main()
 
 
-    def __creatfile(self):
-            """
-            建立aria2下载文件
-            """
+    def __getdownload(self):
             print ("请输入要下载的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A下载所有任务:")
-            target=raw_input().strip()
+            target=raw_input("dl #").strip()
             if target.upper()=="A":
                 lists=range(1,len(self.filehttp)+1)
             else:
@@ -253,23 +250,11 @@ class XF:
                 return
             #print lists
             self.__gethttp(lists)
-            f = open("%s/.xfd"%self.__downpath,'w')
-            for num in lists:
-                try:
-                    num=int(num)-1
-                    f.write(self.filehttp[num])
-                    f.write("\n  header=Cookie: FTN5K=%s" %self.filecom[num])
-                    if hasattr(self,"__proxy") and self.__proxy != None:
-                        f.write("\n  --all-proxy='%s'" %self.__proxy)
-                    f.write("\n  max-conection-per-server=5\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
-                except:
-                    print (num+1 ,_(" 任务建立失败!"))
-            f.close
-            print("aria2输入文件建立")
+            self.__download(lists)
 
     def __deltask(self):
         print ("请输入要删除的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A删除所有任务:")
-        target=raw_input().strip()
+        target=raw_input("dt #").strip()
         if target.upper()=="A":
             lists=range(1,len(self.filehttp)+1)
         else:
@@ -311,14 +296,27 @@ class XF:
 
         #os.system(r'killall wget')
 
-    def __download(self):
+    def __download(self,lists):
+            f = open("%s/.xfd"%self.__downpath,'w')
+            for num in lists:
+                try:
+                    num=int(num)-1
+                    f.write(self.filehttp[num])
+                    f.write("\n  header=Cookie: FTN5K=%s" %self.filecom[num])
+                    if hasattr(self,"proxy") and self.proxy:
+                        f.write("\n  all-proxy=%s" %self.proxy)
+                    f.write("\n  max-conection-per-server=5\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
+                except:
+                    print (num+1 ,_(" 任务建立失败!"))
+            f.close()
+            print("aria2输入文件建立")
 
             """
             调用aria2进行下载
 
             """
-            # if not hasattr(self,"__proxy") or self.__proxy==None:
-            os.system("cd %s && aria2c -i .xfd "% self.__downpath)
+            # if not hasattr(self,"proxy") or self.proxy==None:
+            os.system("cd %s && aria2c -i .xfd"% self.__downpath)
                     
     def __Login(self):
         """
