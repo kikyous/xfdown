@@ -22,10 +22,15 @@ def _(string):
     except:
         return string
 
+def get_module_path():
+        if hasattr(sys, "frozen"):
+            module_path = os.path.dirname(sys.executable)
+        else:
+            module_path = os.path.dirname(os.path.abspath(__file__))
+        return module_path
+module_path=get_module_path()
 
 class LWPCookieJar(cookiejar.LWPCookieJar):
-    # def __init__(self,police=None):
-        # cookiejar.LWPCookieJar.__init__(police)
     def save(self, filename=None, ignore_discard=False, ignore_expires=False,userinfo=None):
         if filename is None:
             if self.filename is not None: filename = self.filename
@@ -65,7 +70,8 @@ class XF:
     __headers ={
                 'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:13.0) Gecko/20120414 Firefox/13.0a2',\
     }
-    __cookiepath = '%s/cookie'%os.path.expanduser("~")
+    __cookiepath = '%s/cookie'%module_path
+    __verifyimg  = '%s/verify.jpg'%module_path
     __verifycode = None
     __http = {}
     __RE=re.compile("\d+")
@@ -141,21 +147,18 @@ class XF:
 
 
         urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=567008010&r='+ ('%s' % random.Random().random())
-       # urlv = 'http://ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'appid=567008010&r=0.449888761736'
 
         str = self.__request(url = urlv, savecookie=False)
         lists=eval(str.split("(")[1].split(")")[0])
-        print lists
         if lists[0]=='1':
             imgurl="http://captcha.qq.com/getimage?aid=567008010&r=%s&uin=%s&vc_type=%s"%(random.Random().random(),self.__qq,lists[1])
-            print imgurl
-            f=open("verify.jpg","wb")
+            f=open(self.__verifyimg,"wb")
             fp = self.__http['opener'].open(imgurl)
             f.write(fp.read())
             f.close()
-            subprocess.Popen(['xdg-open', "verify.jpg"])
+            subprocess.Popen(['xdg-open', self.__verifyimg])
             print("请输入验证码：")
-            verify=raw_input().strip()
+            verify=raw_input("vf # ").strip()
             
         else:
             verify=lists[1]
@@ -171,11 +174,11 @@ class XF:
             self.__getverifycode()
             self.__Login(False,True)
         elif str.find(_('不正确')) != -1:
-            print str
+#            print str
             print('你输入的帐号或者密码不正确，请重新输入。')
             self.__Login(True)
         else:
-            print('登录失败')
+            #print('登录失败')
             print str
             self.__Login(True)
 
@@ -263,7 +266,7 @@ class XF:
        
     def __chosetask(self):
         print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,R刷新离线任务列表")
-        inputs=raw_input("ct #")
+        inputs=raw_input("ct # ")
         if inputs=="":
             self.__getdownload()
         elif inputs.upper()=="A":
@@ -281,7 +284,7 @@ class XF:
 
     def __getdownload(self):
             print ("请输入要下载的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A下载所有任务:")
-            target=raw_input("dl #").strip()
+            target=raw_input("dl # ").strip()
             if target.upper()=="A":
                 lists=range(1,len(self.filehttp)+1)
             else:
@@ -296,7 +299,7 @@ class XF:
 
     def __deltask(self):
         print ("请输入要删除的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A删除所有任务:")
-        target=raw_input("dt #").strip()
+        target=raw_input("dt # ").strip()
         if target.upper()=="A":
             lists=range(1,len(self.filehttp)+1)
         else:
@@ -347,7 +350,8 @@ class XF:
                     f.write("\n  header=Cookie: FTN5K=%s" %self.filecom[num])
                     if hasattr(self,"proxy") and self.proxy:
                         f.write("\n  all-proxy=%s" %self.proxy)
-                    f.write("\n  max-conection-per-server=5\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
+                         
+                    f.write("\n  max-conection-per-server=5\n  min-split-size=2097152\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
                 except:
                     print (num+1 ,_(" 任务建立失败!"))
             f.close()
@@ -391,7 +395,6 @@ class XF:
             )
         print ("登录中...")
         self.__request_login()
-        pass
 
 try:
     s = XF()
