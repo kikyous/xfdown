@@ -45,9 +45,6 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
             open(filename, "w").close()
         f = open(filename, "rw+")
         try:
-            # There really isn't an LWP Cookies 2.0 format, but this indicates
-            # that there is extra information in here (domain_dot and
-            # port_spec) while still being compatible with libwww-perl, I hope.
             if userinfo:
                 f.seek(0)
                 f.write("#LWP-Cookies-2.0\n")
