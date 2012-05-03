@@ -30,6 +30,11 @@ def get_module_path():
         return module_path
 module_path=get_module_path()
 
+
+
+
+
+
 class LWPCookieJar(cookiejar.LWPCookieJar):
     def save(self, filename=None, ignore_discard=False, ignore_expires=False,userinfo=None):
         if filename is None:
@@ -60,7 +65,6 @@ class XF:
      Login QQ
     """
 
-    proxy="219.246.90.196:7777"
     __downpath = os.path.expanduser("~/下载")
     try:
         os.makedirs(__downpath)
@@ -129,17 +133,6 @@ class XF:
         fp.close()
         return str
         pass
-    def __getcookies(self,name):
-        fp = open(self.__cookiepath)
-        fp.seek(130)
-        for read in fp.readlines():
-            str = read.split(name)
-            if len(str) == 2:
-                fp.close()
-                return str[1].strip()
-        fp.close()
-        return None
-        pass
     def __getverifycode(self):
         """
             @url:http://ptlogin2.qq.com/check?uin=644826377&appid=1003903&r=0.56373973749578
@@ -201,7 +194,6 @@ class XF:
         urlv = 'http://lixian.qq.com/handler/lixian/do_lixian_login.php'
         str = self.__request(url =urlv,method = 'POST',savecookie=True)
         return str
-            #登陆旋风，可从str中得到用户信息
 
     def __getlist(self):
             """
@@ -265,7 +257,7 @@ class XF:
                 self.filecom[num]=(re.search(r'\"com_cookie":\"(.+?)\"\,\"',str).group(1))
        
     def __chosetask(self):
-        print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,R刷新离线任务列表")
+        print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,C继续上次任务，R刷新离线任务列表")
         inputs=raw_input("ct # ")
         if inputs=="":
             self.__getdownload()
@@ -277,6 +269,8 @@ class XF:
             self.main()
         elif inputs.upper()=="R":
             self.main()
+        elif inputs.upper()=="C":
+            os.system("cd %s && aria2c -i .xfd"% self.__downpath)
         elif inputs.upper()=="O":
             self.__online()
             self.main()
@@ -351,7 +345,7 @@ class XF:
                     if hasattr(self,"proxy") and self.proxy:
                         f.write("\n  all-proxy=%s" %self.proxy)
                          
-                    f.write("\n  max-conection-per-server=5\n  min-split-size=2097152\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
+                    f.write("\n  max-conection-per-server=5\n  min-split-size=1048576\n  parameterized-uri=true\n  continue=true\n  split=5\n\n")
                 except:
                     print (num+1 ,_(" 任务建立失败!"))
             f.close()
@@ -379,7 +373,8 @@ class XF:
                 f.close()
         if not hasattr(self,"hashpasswd") or needInput:
             self.__qq = raw_input('QQ号码：')
-            self.pswd = raw_input('QQ密码：')
+            import getpass
+            self.pswd=getpass.getpass('QQ密码: ')
             self.pswd = self.pswd.strip()
         self.__qq = self.__qq.strip()
         self.__verifycode = self.__getverifycode()
