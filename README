@@ -1,2 +1,7 @@
+用python实现的基于webqq协议
+http://lixian.qq.com/
+的一个下载离线任务的脚本
 
-a script to down QQxuanfeng offline tasks.
+
+调用aria2下载
+可实现多线程，断点续传等特性
