@@ -265,7 +265,7 @@ class XF:
             print ("(数字后跟p只打印下载命令而不下载，比如1p2p3)")
             target=raw_input("dl # ").strip()
             if target.upper()=="A":
-                lists=zip(range(1,len(self.filehttp)+1) , ['']* len(self.filehttp))
+                lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
             else:
                 lists=self.__RE.findall(target)
             if lists==[]:
@@ -280,7 +280,7 @@ class XF:
         print ("请输入要删除的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A删除所有任务:")
         target=raw_input("dt # ").strip()
         if target.upper()=="A":
-            lists=range(1,len(self.filehttp)+1)
+            lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
         else:
             lists=self.__RE.findall(target)
         if lists==[]:
@@ -292,7 +292,7 @@ class XF:
             num=int(i[0])-1
             data={'mids':self.filemid[num]}
             self.__request(urlv,data)
-            print("任务删除完成")
+        print("任务删除完成")
 
                     
     def __addtask(self):
