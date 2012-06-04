@@ -71,7 +71,6 @@ class XF:
 
     __cookiepath = '%s/cookie'%module_path
     __verifyimg  = '%s/verify.jpg'%module_path
-    __http = {}
     __RE=re.compile("\d+")
     def __preprocess(self,password=None,verifycode=None,hashpasswd=None):
 
@@ -91,30 +90,29 @@ class XF:
 
         return self.hashpasswd
     def __init__(self):
-        self.__http['cj'] = LWPCookieJar(self.__cookiepath)
+        self.cookieJar=LWPCookieJar(self.__cookiepath)
+
         if os.path.isfile(self.__cookiepath):
-            self.__http['cj'].load(ignore_discard=True, ignore_expires=True)
+            self.cookieJar.load(ignore_discard=True, ignore_expires=True)
 
-        self.__http['opener'] = request.build_opener(request.HTTPCookieProcessor(self.__http['cj']))
-
-
+        opener = request.build_opener(request.HTTPCookieProcessor(self.cookieJar))
+        request.install_opener(opener)
+        
         self.EncodePasswd=EncodePasswd()
-
 
         if os.path.isfile(self.__cookiepath):
             self.main()
         else:
             self.__Login(True)
-    def __request(self,url,method='GET',data={},savecookie=False,headers={}):
+    def __request(self,url,data=None,savecookie=False,headers={}):
         """
             请求url
         """
-        if (method).upper() == 'POST':
+        if data:
             data = parse.urlencode(data).encode('utf-8')
-            self.__http['req'] = request.Request(url,data,headers=headers)
+            fp=request.urlopen(url,data)
         else:
-            self.__http['req'] = request.Request(url=url,headers=headers)
-        fp = self.__http['opener'].open(self.__http['req'])
+            fp=request.urlopen(url)
         # print fp.headers
         try:
             str = fp.read().decode('utf-8')
@@ -122,15 +120,15 @@ class XF:
             str = fp.read()
         if savecookie == True:
             if hasattr(self,"pswd"):
-                self.__http['cj'].save(ignore_discard=True, ignore_expires=True,userinfo="%s#%s"%(self.__qq,self.hashpasswd))
+                self.cookieJar.save(ignore_discard=True, ignore_expires=True,userinfo="%s#%s"%(self.__qq,self.hashpasswd))
             else:
-                self.__http['cj'].save(ignore_discard=True, ignore_expires=True)
+                self.cookieJar.save(ignore_discard=True, ignore_expires=True)
 
         fp.close()
         return str
     def __getverifycode(self):
 
-        urlv = 'http://check.ptlogin2.qq.com/check?uin='+ ('%s' % self.__qq)+'&appid=567008010&r='+ ('%s' % random.Random().random())
+        urlv = 'http://check.ptlogin2.qq.com/check?uin=%s&appid=567008010&r=%s'%(self.__qq,random.Random().random())
 
         str = self.__request(url = urlv, savecookie=False)
         verify=eval(str.split("(")[1].split(")")[0])
@@ -138,7 +136,7 @@ class XF:
         if verify[0]=='1':
             imgurl="http://captcha.qq.com/getimage?aid=567008010&r=%s&uin=%s"%(random.Random().random(),self.__qq)
             f=open(self.__verifyimg,"wb")
-            fp = self.__http['opener'].open(imgurl)
+            fp = urllib2.urlopen(imgurl)
             f.write(fp.read())
             f.close()
             subprocess.Popen(['xdg-open', self.__verifyimg])
@@ -160,7 +158,6 @@ class XF:
             self.__getverifycode()
             self.__Login(False,True)
         elif str.find(_('不正确')) != -1:
-#            print str
             print('你输入的帐号或者密码不正确，请重新输入。')
             self.__Login(True)
         else:
@@ -185,7 +182,7 @@ class XF:
         return filename.split("?")[0]
     def __getlogin(self):
         urlv = 'http://lixian.qq.com/handler/lixian/do_lixian_login.php'
-        str = self.__request(url =urlv,method = 'POST',savecookie=True)
+        str = self.__request(url =urlv,data={},savecookie=True)
         return str
 
     def __getlist(self):
@@ -193,7 +190,7 @@ class XF:
             得到任务名与hash值
             """
             urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_list.php'
-            res = self.__request(urlv,'POST',savecookie=False)
+            res = self.__request(urlv,{},savecookie=False)
             res = json.JSONDecoder().decode(res)
             if res["msg"]==_('未登录!'):
                 res=json.JSONDecoder().decode(self.__getlogin())
@@ -245,12 +242,12 @@ class XF:
             for num in filelist:
                 num=int(num)-1
                 data = {'hash':self.filehash[num],'filename':self.filename[num],'browser':'other'}
-                str = self.__request(urlv,'POST',data)
+                str = self.__request(urlv,data)
                 self.filehttp[num]=(re.search(r'\"com_url\":\"(.+?)\"\,\"',str).group(1))
                 self.filecom[num]=(re.search(r'\"com_cookie":\"(.+?)\"\,\"',str).group(1))
        
     def __chosetask(self):
-        print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,C继续上次任务，R刷新离线任务列表")
+        print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,R刷新离线任务列表")
         inputs=raw_input("ct # ")
         if inputs=="":
             self.__getdownload()
@@ -262,8 +259,6 @@ class XF:
             self.main()
         elif inputs.upper()=="R":
             self.main()
-        elif inputs.upper()=="C":
-            os.system("cd %s && aria2c -i .xfd"% self.__downpath)
         elif inputs.upper()=="O":
             self.__online()
             self.main()
@@ -298,7 +293,7 @@ class XF:
         for num in lists:
                 num=int(num)-1
                 data = {'mids':self.filemid[num]}
-                str = self.__request(urlv,'POST',data)
+                str = self.__request(urlv,data)
         print("任务删除完成")
                     
     def __addtask(self):
@@ -310,7 +305,7 @@ class XF:
                 "filesize":0,\
                 }
         urlv="http://lixian.qq.com/handler/lixian/add_to_lixian.php"
-        str = self.__request(urlv,'POST',data)
+        str = self.__request(urlv,data)
 
     def __online(self):
         print("输入需要在线观看的任务序号")
@@ -363,8 +358,8 @@ class XF:
         self.__verifycode = self.__getverifycode()
         if not hasattr(self,"hashpasswd") or needInput:
             self.passwd = self.__preprocess(
-                self.pswd,#密码 \
-                self.__verifycode  #验证码 \
+                self.pswd,
+                self.__verifycode
             )
         else:
             self.passwd = self.__preprocess(
@@ -591,17 +586,6 @@ class EncodePasswd(object):
         arr="".join(arr)
         exec("temp = '" + arr + "'");
         return temp
-
-
-
-    def md5_3(self, B):
-        hash = self.core_md5(self.str2binl(B), len(B)*self.chrsz)
-        hash = self.core_md5(hash, 16*self.chrsz)
-        hash = self.core_md5(hash, 16*self.chrsz)
-        return self.binl2hex(hash)
-
-
-
 
 
 
