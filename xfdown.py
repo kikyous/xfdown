@@ -33,9 +33,6 @@ module_path=get_module_path()
 
 
 
-
-
-
 class LWPCookieJar(cookiejar.LWPCookieJar):
     def save(self, filename=None, ignore_discard=False, ignore_expires=False,userinfo=None):
         if filename is None:
@@ -71,7 +68,7 @@ class XF:
 
     __cookiepath = '%s/cookie'%module_path
     __verifyimg  = '%s/verify.jpg'%module_path
-    __RE=re.compile("\d+")
+    __RE=re.compile("(\d+) *([^\d ]+)?")
     def __preprocess(self,password=None,verifycode=None,hashpasswd=None):
 
         if not hashpasswd:
@@ -168,7 +165,6 @@ class XF:
     def main(self):
         self.__getlist()
         self.__chosetask()
-        self.__getdownload()
 
     def getfilename_url(self,url):
         url=url.strip()
@@ -237,10 +233,10 @@ class XF:
             获取任务下载连接以及FTN5K值
             """
             urlv = 'http://lixian.qq.com/handler/lixian/get_http_url.php'
-            self.filehttp = list(range(len(self.filehash)))
-            self.filecom = list(range(len(self.filehash)))
+            self.filehttp = [''] * len(self.filehash)
+            self.filecom = [''] * len(self.filehash)
             for num in filelist:
-                num=int(num)-1
+                num=int(num[0])-1
                 data = {'hash':self.filehash[num],'filename':self.filename[num],'browser':'other'}
                 str = self.__request(urlv,data)
                 self.filehttp[num]=(re.search(r'\"com_url\":\"(.+?)\"\,\"',str).group(1))
@@ -249,9 +245,7 @@ class XF:
     def __chosetask(self):
         print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,R刷新离线任务列表")
         inputs=raw_input("ct # ")
-        if inputs=="":
-            self.__getdownload()
-        elif inputs.upper()=="A":
+        if inputs.upper()=="A":
             self.__addtask()
             self.main()
         elif inputs.upper()=="D":
@@ -262,13 +256,16 @@ class XF:
         elif inputs.upper()=="O":
             self.__online()
             self.main()
-
+        else:
+            self.__getdownload()
+            self.main()
 
     def __getdownload(self):
-            print ("请输入要下载的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A下载所有任务:")
+            print ("请输入要下载的任务序号,数字之间用空格或其他字符分隔.\n输入A下载所有任务:")
+            print ("(数字后跟p只打印下载命令而不下载，比如1p2p3)")
             target=raw_input("dl # ").strip()
             if target.upper()=="A":
-                lists=range(1,len(self.filehttp)+1)
+                lists=zip(range(1,len(self.filehttp)+1) , ['']* len(self.filehttp))
             else:
                 lists=self.__RE.findall(target)
             if lists==[]:
@@ -290,11 +287,13 @@ class XF:
             print ("选择为空.")
             self.__chosetask()
         urlv = 'http://lixian.qq.com/handler/lixian/del_lixian_task.php'
-        for num in lists:
-                num=int(num)-1
-                data = {'mids':self.filemid[num]}
-                str = self.__request(urlv,data)
-        print("任务删除完成")
+
+        for i in lists:
+            num=int(i[0])-1
+            data={'mids':self.filemid[num]}
+            self.__request(urlv,data)
+            print("任务删除完成")
+
                     
     def __addtask(self):
         print ("请输入下载地址:")
@@ -324,17 +323,23 @@ class XF:
         #os.system(r'killall wget')
 
     def __download(self,lists):
-        num=lists[0]
-        num=int(num)-1
-        cmd="aria2c -c -s10 -x10 --header 'Cookie:ptisp=edu; FTN5K=%s' '%s'"%(self.filecom[num],self.filehttp[num])
+        cmds=[]
+
+        for i in lists:
+            num=int(i[0])-1
+            cmd="aria2c -c -s10 -x10 --header 'Cookie:ptisp=edu; FTN5K=%s' '%s'"%(self.filecom[num],self.filehttp[num])
+            cmd=cmd.encode("u8")
+            if i[1].upper()=='P':
+                print('\n%s'%cmd)
+            else:
+                cmds.append(cmd)
 
         """
         调用aria2进行下载
 
         """
-        cmd=cmd.encode("u8")
-        print cmd
-        os.system("cd %s && %s"%(self.__downpath,cmd))
+        for i in cmds:
+            os.system("cd %s && %s"%(self.__downpath,i))
                     
     def __Login(self,needInput=False,verify=False):
         """
