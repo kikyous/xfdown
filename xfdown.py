@@ -93,6 +93,7 @@ class XF:
             self.cookieJar.load(ignore_discard=True, ignore_expires=True)
 
         opener = request.build_opener(request.HTTPCookieProcessor(self.cookieJar))
+        opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
         request.install_opener(opener)
         
         self.EncodePasswd=EncodePasswd()
@@ -101,7 +102,7 @@ class XF:
             self.main()
         else:
             self.__Login(True)
-    def __request(self,url,data=None,savecookie=False,headers={}):
+    def __request(self,url,data=None,savecookie=False):
         """
             请求url
         """
