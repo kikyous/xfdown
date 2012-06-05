@@ -310,8 +310,7 @@ class XF:
     def __online(self):
         print("输入需要在线观看的任务序号")
         num = int(raw_input())-1
-        self.__gethttp([num+1])
-        print [self.filename[num]]
+        self.__gethttp([(num+1,'')])
         print("正在缓冲，马上开始播放")
         filename=_(self.filename[num])
         arg=['wget', '-c', '-O', filename, '--header', 'Cookie:FTN5K=%s'%self.filecom[num], self.filehttp[num]]
