@@ -48,8 +48,6 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
             if self.filename is not None: filename = self.filename
             else: raise ValueError(MISSING_FILENAME_TEXT)
 
-       # if not os.path.exists(filename):
-       #     open(filename, "w").close()
         f = open(filename, "a+")
         try:
             if userinfo:
@@ -92,7 +90,6 @@ class XF:
 
 
     def __md5(self,str):
-        #self.hashpasswd=self.EncodePasswd.md5(str)
         return hashlib.md5(str).hexdigest().upper()
 
 
@@ -127,7 +124,6 @@ class XF:
             fp=request.urlopen(url,data)
         else:
             fp=request.urlopen(url)
-        # print fp.headers
         try:
             str = fp.read().decode('utf-8')
         except UnicodeDecodeError:
@@ -228,7 +224,7 @@ class XF:
                 for num in range(len(res['data'])):
                     index=res['data'][num]
                     self.filename.append(index['file_name'].encode("u8"))
-                    self.filehash.append(index['hash'])
+                    self.filehash.append(index['code'])
                     size=index['file_size']
                     self.filemid.append(index['mid'])
                     if size==0:
@@ -339,8 +335,6 @@ class XF:
         arg=['totem', filename]
         subprocess.Popen(arg,cwd=_(self.__downpath))
 
-        #os.system(r'killall wget')
-
     def __download(self,lists):
         cmds=[]
 
@@ -400,4 +394,3 @@ try:
 except KeyboardInterrupt:
     print (" exit now.")
     sys.exit()
-
