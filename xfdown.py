@@ -328,12 +328,12 @@ class XF:
         self.__gethttp([(num+1,'')])
         _print("正在缓冲，马上开始播放")
         filename=_(self.filename[num])
-        arg=['wget', '-c', '-O', filename, '--header', 'Cookie:FTN5K=%s'%self.filecom[num], self.filehttp[num]]
+        cmd=['wget', '-c', '-O', filename, '--header', 'Cookie:FTN5K=%s'%self.filecom[num], self.filehttp[num]]
 
-        subprocess.Popen(arg,cwd=_(self.__downpath))
+        subprocess.Popen(cmd,cwd=_(self.__downpath))
         time.sleep(5)
-        arg=['totem', filename]
-        subprocess.Popen(arg,cwd=_(self.__downpath))
+        cmd=['totem', filename]
+        subprocess.Popen(cmd,cwd=_(self.__downpath))
 
     def __download(self,lists):
         cmds=[]
@@ -341,7 +341,11 @@ class XF:
         for i in lists:
             num=int(i[0])-1
             cmd="aria2c -c -s10 -x10 --header 'Cookie:ptisp=edu; FTN5K=%s' '%s'"%(self.filecom[num],self.filehttp[num])
-            cmd=cmd.encode("u8")
+            if sys.version_info >= (3,0):
+                pass
+            else:
+                cmd=cmd.encode("u8")
+
             if i[1].upper()=='P':
                 print('\n%s'%cmd)
             else:
