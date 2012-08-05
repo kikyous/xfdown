@@ -219,6 +219,7 @@ class XF:
                 self.filename = []
                 self.filehash = []
                 self.filemid = []
+                res['data'].sort(key=lambda x: x["file_name"])
                 _print ("\n===================离线任务列表====================")
                 _print ("序号\t大小\t进度\t文件名")
                 for num in range(len(res['data'])):
@@ -229,7 +230,6 @@ class XF:
                     self.filemid.append(index['mid'])
                     if size==0:
                         percent="-0"
-
                     else:
                         percent=str(index['comp_size']/size*100).split(".")[0]
 
