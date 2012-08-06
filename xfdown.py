@@ -12,6 +12,10 @@ except:
     from http import cookiejar
 import random,time
 import json,os,sys,re,hashlib
+import getopt
+
+
+
 
 try:
     raw_input
@@ -67,11 +71,7 @@ class XF:
      Login QQ
     """
 
-    __downpath = os.path.expanduser("~/下载")
-    try:
-        os.makedirs(__downpath)
-    except:
-        pass
+    _player="totem"
 
     __cookiepath = '%s/cookie'%module_path
     __verifyimg  = '%s/verify.jpg'%module_path
@@ -93,7 +93,7 @@ class XF:
         return hashlib.md5(str).hexdigest().upper()
 
 
-    def __init__(self):
+    def start(self):
         self.cookieJar=LWPCookieJar(self.__cookiepath)
 
         cookieload=False
@@ -330,10 +330,10 @@ class XF:
         filename=_(self.filename[num])
         cmd=['wget', '-c', '-O', filename, '--header', 'Cookie:FTN5K=%s'%self.filecom[num], self.filehttp[num]]
 
-        subprocess.Popen(cmd,cwd=_(self.__downpath))
+        subprocess.Popen(cmd,cwd=_(self._downpath))
         time.sleep(5)
-        cmd=['totem', filename]
-        subprocess.Popen(cmd,cwd=_(self.__downpath))
+        cmd=[self._player, filename]
+        subprocess.Popen(cmd,cwd=_(self._downpath))
 
     def __download(self,lists):
         cmds=[]
@@ -356,7 +356,7 @@ class XF:
 
         """
         for i in cmds:
-            os.system("cd %s && %s"%(self.__downpath,i))
+            os.system("cd %s && %s"%(self._downpath,i))
                     
     def __Login(self,needInput=False,verify=False):
         """
@@ -392,9 +392,34 @@ class XF:
         self.__request_login()
 
 
-
+def usage():
+    print("QQxf offline download utility (you need aria2 installed to use).\n")
+    print("  -h,--help\tshow this usage and exit.")
+    print("  -d <dir>,--downloaddir=<dir>\n\tset the download dir.")
+    print("  -p <dir>,--player=<dir>\n\tset the player.")
+    print("\n\nsee https://github.com/kikyous/xfdown for most newest version and more information")
 try:
-    s = XF()
+    xf = XF()
+    opts, args = getopt.getopt(sys.argv[1:], "hd:p:", ["help", "downloaddir=","player="])
+    for o, v in opts:
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o in ("-d", "--downloaddir"):
+            xf._downpath=os.path.abspath(os.path.expanduser(v))
+        elif o in ("-p", "--player"):
+            xf._player=v
+        else:
+            assert False, "unhandled option"
+    if not hasattr(xf,"_downpath"):
+        xf._downpath = os.path.expanduser("~/下载")
+    os.makedirs(xf._downpath) if not os.path.exists(xf._downpath) else None
+
+    xf.start()
 except KeyboardInterrupt:
     print (" exit now.")
-    sys.exit()
+    sys.exit(2)
+except getopt.GetoptError as err:
+    print(err)
+    usage()
+    sys.exit(2)
