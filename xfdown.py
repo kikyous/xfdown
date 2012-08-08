@@ -14,9 +14,6 @@ import random,time
 import json,os,sys,re,hashlib
 import getopt
 
-
-
-
 try:
     raw_input
 except:
@@ -37,13 +34,12 @@ def get_module_path():
         return module_path
 module_path=get_module_path()
 
-def hexchar2bin(str):
-        arr = []
-        for i in range(0, len(str) , 2):
-            arr.append("\\x" + str[i:i+2])
-        arr="".join(arr)
-        exec("temp = '" + arr + "'");
-        return temp
+def hexchar2bin(hex):
+    arry= []
+    for i in range(0, len(hex), 2):
+        arry.append( chr( int (hex[i:i+2], 16 ) ) )
+    tmp=''.join( arry )
+    return tmp
 
 
 class LWPCookieJar(cookiejar.LWPCookieJar):
@@ -61,6 +57,8 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
             else:
                 f.seek(len(''.join(f.readlines()[:2])))
             f.write(self.as_lwp_str(ignore_discard, ignore_expires))
+            truncate_pos = f.tell()
+            f.truncate(truncate_pos)
         finally:
             f.close()
 
@@ -87,11 +85,11 @@ class XF:
         G = self.__md5(H + verifycode[1].upper());
 
         return G
-
-
-    def __md5(self,str):
-        return hashlib.md5(str).hexdigest().upper()
-
+        
+    def __md5(self,item):
+        if sys.version_info >= (3,0):
+            item=item.encode("u8")
+        return hashlib.md5(item).hexdigest().upper()
 
     def start(self):
         self.cookieJar=LWPCookieJar(self.__cookiepath)
@@ -241,7 +239,11 @@ class XF:
                         else:
                             break
                     size="%.1f%s"%(size,_dw)
-                    _print ("%d\t%s\t%s%%\t%s"%(num+1,size,percent,_(self.filename[num])))
+                    out="%d\t%s\t%s%%\t%s"%(num+1,size,percent,_(self.filename[num]))
+                    if num % 2==0:
+                        out="\033[47m%s\033[m"%out
+
+                    _print (out)
                 _print ("=======================END=========================\n")
 
     def __gethttp(self,filelist):
@@ -357,6 +359,10 @@ class XF:
         """
         for i in cmds:
             os.system("cd %s && %s"%(self._downpath,i))
+        try:
+            subprocess.Popen(["notify-send","xfdown: 下载完成!"])
+        except:
+            _print("notify-send error,you should have libnotify-bin installed.")
                     
     def __Login(self,needInput=False,verify=False):
         """
@@ -396,7 +402,7 @@ def usage():
     print("QQxf offline download utility (you need aria2 installed to use).\n")
     print("  -h,--help\tshow this usage and exit.")
     print("  -d <dir>,--downloaddir=<dir>\n\tset the download dir.")
-    print("  -p <dir>,--player=<dir>\n\tset the player.")
+    print("  -p <player>,--player=<player>\n\tset the player.")
     print("\n\nsee https://github.com/kikyous/xfdown for most newest version and more information")
 try:
     xf = XF()
