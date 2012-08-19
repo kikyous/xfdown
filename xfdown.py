@@ -81,15 +81,9 @@ class XF:
         I=hexchar2bin(self.hashpasswd)
         if sys.version_info >= (3,0):
           H = self.__md5(I + bytes(verifycode[2],encoding="ISO-8859-1"))
-          print(I)
-          print(I + bytes(verifycode[2],encoding="utf-8"))
         else:
           H = self.__md5(I + verifycode[2])
-          print(H)
-          print(I+verifycode[2])
-          print(H + verifycode[1].upper())
         G = self.__md5(H + verifycode[1].upper())
-        print(G)
 
         return G
         
@@ -151,7 +145,6 @@ class XF:
         str = self.__request(url = urlv, savecookie=False)
         verify=eval(str.split("(")[1].split(")")[0])
         verify=list(verify)
-        print(verify)
         if verify[0]=='1':
             imgurl="http://captcha.qq.com/getimage?aid=567008010&r=%s&uin=%s"%(random.Random().random(),self.__qq)
             f=open(self.__verifyimg,"wb")
