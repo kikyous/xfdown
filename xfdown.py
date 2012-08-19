@@ -35,11 +35,10 @@ def get_module_path():
 module_path=get_module_path()
 
 def hexchar2bin(hex):
-    arry= []
+    arry= bytearray()
     for i in range(0, len(hex), 2):
-        arry.append( chr( int (hex[i:i+2], 16 ) ) )
-    tmp=''.join( arry )
-    return tmp
+        arry.append(int(hex[i:i+2],16))
+    return arry
 
 
 class LWPCookieJar(cookiejar.LWPCookieJar):
@@ -80,15 +79,20 @@ class XF:
             self.hashpasswd=self.__md5(password)
 
         I=hexchar2bin(self.hashpasswd)
-
-        H = self.__md5(I + verifycode[2])
-        G = self.__md5(H + verifycode[1].upper());
+        if sys.version_info >= (3,0):
+          H = self.__md5(I + bytes(verifycode[2],encoding="ISO-8859-1"))
+        else:
+          H = self.__md5(I + verifycode[2])
+        G = self.__md5(H + verifycode[1].upper())
 
         return G
         
     def __md5(self,item):
         if sys.version_info >= (3,0):
-            item=item.encode("u8")
+            try:
+              item=item.encode("u8")
+            except:
+              pass
         return hashlib.md5(item).hexdigest().upper()
 
     def start(self):
@@ -380,7 +384,7 @@ class XF:
         if not hasattr(self,"hashpasswd") or needInput:
             self.__qq = raw_input('QQ：')
             import getpass
-            self.pswd=getpass.getpass('PASSWD: ')
+            self.pswd= getpass.getpass('PASSWD: ')
             self.pswd = self.pswd.strip()
         self.__qq = self.__qq.strip()
         self.__verifycode = self.__getverifycode()
