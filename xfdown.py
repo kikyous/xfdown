@@ -10,14 +10,11 @@ try:
 except:
     from urllib import parse,request
     from http import cookiejar
+    raw_input=input
 import random,time
 import json,os,sys,re,hashlib
 import getopt
 
-try:
-    raw_input
-except:
-    raw_input=input
 def _(string):
     try:
         return string.decode("u8")
@@ -26,12 +23,13 @@ def _(string):
 
 def _print(str):
     print (_(str))
+
 def get_module_path():
-        if hasattr(sys, "frozen"):
-            module_path = os.path.dirname(sys.executable)
-        else:
-            module_path = os.path.dirname(os.path.abspath(__file__))
-        return module_path
+    if hasattr(sys, "frozen"):
+        module_path = os.path.dirname(sys.executable)
+    else:
+        module_path = os.path.dirname(os.path.abspath(__file__))
+    return module_path
 module_path=get_module_path()
 
 def hexchar2bin(hex):
@@ -240,7 +238,7 @@ class XF:
                             break
                     size="%.1f%s"%(size,_dw)
                     out="%d\t%s\t%s%%\t%s"%(num+1,size,percent,_(self.filename[num]))
-                    if num % 2==0:
+                    if num % 2==0 and os.name=='posix':
                         out="\033[47m%s\033[m"%out
 
                     _print (out)
@@ -359,16 +357,17 @@ class XF:
         """
         for i in cmds:
             os.system("cd %s && %s"%(self._downpath,i))
-        try:
-            subprocess.Popen(["notify-send","xfdown: 下载完成!"])
-        except:
-            _print("notify-send error,you should have libnotify-bin installed.")
+            try:
+                subprocess.Popen(["notify-send","xfdown: 下载完成!"])
+            except:
+                if os.name=='posix':
+                  _print("notify-send error,you should have libnotify-bin installed.")
                     
-    def __Login(self,needInput=False,verify=False):
+    def __Login(self,needinput=False,verify=False):
         """
         登录
         """
-        if not needInput and not verify:
+        if not needinput and not verify:
             try:
                 f=open(self.__cookiepath)
                 line=f.readlines()[1].strip()
@@ -377,14 +376,14 @@ class XF:
                 self.hashpasswd=lists[2]
             finally:
                 f.close()
-        if not hasattr(self,"hashpasswd") or needInput:
+        if not hasattr(self,"hashpasswd") or needinput:
             self.__qq = raw_input('QQ：')
             import getpass
             self.pswd=getpass.getpass('PASSWD: ')
             self.pswd = self.pswd.strip()
         self.__qq = self.__qq.strip()
         self.__verifycode = self.__getverifycode()
-        if not hasattr(self,"hashpasswd") or needInput:
+        if not hasattr(self,"hashpasswd") or needinput:
             self.passwd = self.__preprocess(
                 self.pswd,
                 self.__verifycode
