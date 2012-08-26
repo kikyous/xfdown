@@ -45,7 +45,10 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
             if self.filename is not None: filename = self.filename
             else: raise ValueError(MISSING_FILENAME_TEXT)
 
-        f = open(filename, "a+")
+        if not os.path.exists(filename):
+          f=open(filename,'w')
+          f.close()
+        f = open(filename, "rw+")
         try:
             if userinfo:
                 f.seek(0)
@@ -53,9 +56,8 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
                 f.write("#%s\n"%userinfo)
             else:
                 f.seek(len(''.join(f.readlines()[:2])))
+            f.truncate()
             f.write(self.as_lwp_str(ignore_discard, ignore_expires))
-            truncate_pos = f.tell()
-            f.truncate(truncate_pos)
         finally:
             f.close()
 
@@ -264,7 +266,7 @@ class XF:
        
     def __chosetask(self):
         _print ("请选择操作,输入回车(Enter)下载任务\nA添加任务,O在线观看,D删除任务,R刷新离线任务列表")
-        inputs=raw_input("ct # ")
+        inputs=raw_input("st # ")
         if inputs.upper()=="A":
             self.__addtask()
             self.main()
@@ -337,7 +339,11 @@ class XF:
         subprocess.Popen(cmd,cwd=_(self._downpath))
         time.sleep(5)
         cmd=[self._player, filename]
-        subprocess.Popen(cmd,cwd=_(self._downpath))
+        try:
+          subprocess.Popen(cmd,cwd=_(self._downpath))
+        except:
+          _print("%s 没有安装"%self._player)
+
 
     def __download(self,lists):
         cmds=[]
