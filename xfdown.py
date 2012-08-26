@@ -142,7 +142,7 @@ class XF:
 
         urlv = 'http://check.ptlogin2.qq.com/check?uin=%s&appid=567008010&r=%s'%(self.__qq,random.Random().random())
 
-        str = self.__request(url = urlv, savecookie=False)
+        str = self.__request(url = urlv)
         verify=eval(str.split("(")[1].split(")")[0])
         verify=list(verify)
         if verify[0]=='1':
@@ -165,7 +165,7 @@ class XF:
     def __request_login(self):
 
         urlv="http://ptlogin2.qq.com/login?u=%s&p=%s&verifycode=%s"%(self.__qq,self.passwd,self.__verifycode[1])+"&aid=567008010&u1=http%3A%2F%2Flixian.qq.com%2Fmain.html&h=1&ptredirect=1&ptlang=2052&from_ui=1&dumy=&fp=loginerroralert&action=2-10-&mibao_css=&t=1&g=1"
-        str = self.__request(url = urlv,savecookie=True)
+        str = self.__request(url = urlv)
         if str.find(_('登录成功')) != -1:
             self.__getlogin()
             self.main()
@@ -204,7 +204,7 @@ class XF:
             得到任务名与hash值
             """
             urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_list.php'
-            res = self.__request(urlv,{},savecookie=False)
+            res = self.__request(urlv,{})
             res = json.JSONDecoder().decode(res)
             if res["msg"]==_('未登录!'):
                 res=json.JSONDecoder().decode(self.__getlogin())
