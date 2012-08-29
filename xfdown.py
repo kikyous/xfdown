@@ -289,8 +289,10 @@ class XF:
             if target.upper()=="A":
                 lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
             elif '-' in target:
-                ran = target.split('-')
-                nums = range(int(ran[0]),int(ran[1])+1)
+                nums = []
+                for i in target.split(' '):
+                    ran = i.split('-')
+                    nums.extend(range(int(ran[0]),int(ran[1])+1))
                 lists = zip(nums , [''] * len(nums))
             else:
                 lists=self.__RE.findall(target)
@@ -308,8 +310,10 @@ class XF:
         if target.upper()=="A":
             lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
         elif '-' in target:
-            ran = target.split('-')
-            nums = range(int(ran[0]),int(ran[1])+1)
+            nums = []
+            for i in target.split():
+                ran = target.split('-')
+                nums.extend(range(int(ran[0]),int(ran[1])+1))
             lists = zip(nums , [''] * len(nums))
         else:
             lists=self.__RE.findall(target)
