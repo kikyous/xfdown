@@ -283,11 +283,17 @@ class XF:
             self.main()
 
     def __getdownload(self):
-            _print ("请输入要下载的任务序号,数字之间用空格或其他字符分隔.\n输入A下载所有任务:")
+            _print ("请输入要下载的任务序号,数字之间用空格或其他字符分隔.或者使用-来选择连续任务\n输入A下载所有任务:")
             _print ("(数字后跟p只打印下载命令而不下载，比如1p2p3)")
             target=raw_input("dl # ").strip()
             if target.upper()=="A":
                 lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
+            elif '-' in target:
+                nums = []
+                for i in target.split(' '):
+                    ran = i.split('-')
+                    nums.extend(range(int(ran[0]),int(ran[1])+1))
+                lists = zip(nums , [''] * len(nums))
             else:
                 lists=self.__RE.findall(target)
             if lists==[]:
@@ -303,6 +309,12 @@ class XF:
         target=raw_input("dt # ").strip()
         if target.upper()=="A":
             lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
+        elif '-' in target:
+            nums = []
+            for i in target.split():
+                ran = target.split('-')
+                nums.extend(range(int(ran[0]),int(ran[1])+1))
+            lists = zip(nums , [''] * len(nums))
         else:
             lists=self.__RE.findall(target)
         if lists==[]:
