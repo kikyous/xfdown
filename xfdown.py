@@ -38,6 +38,11 @@ def hexchar2bin(hex):
         arry.append(int(hex[i:i+2],16))
     return arry
 
+def get_gtk(strs):
+    hash = 5381
+    for i in strs:
+        hash += (hash << 5) + ord(i)
+    return hash & 0x7fffffff;
 
 class LWPCookieJar(cookiejar.LWPCookieJar):
     def save(self, filename=None, ignore_discard=False, ignore_expires=False,userinfo=None):
@@ -48,7 +53,7 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
         if not os.path.exists(filename):
           f=open(filename,'w')
           f.close()
-        f = open(filename, "rw+")
+        f = open(filename, "r+")
         try:
             if userinfo:
                 f.seek(0)
@@ -109,7 +114,7 @@ class XF:
                 
 
         opener = request.build_opener(request.HTTPCookieProcessor(self.cookieJar))
-        opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
+        opener.addheaders = [('User-Agent', 'Mozilla/5.0'),("Referer","http://lixian.qq.com/main.html")]
         request.install_opener(opener)
         
 
@@ -195,8 +200,13 @@ class XF:
             filename=url.split("/")[-1]
         return filename.split("?")[0]
     def __getlogin(self):
+        self.__request(url ="http://lixian.qq.com/handler/lixian/check_tc.php",data={},savecookie=True)
         urlv = 'http://lixian.qq.com/handler/lixian/do_lixian_login.php'
-        str = self.__request(url =urlv,data={},savecookie=True)
+        f=open(self.__cookiepath)
+        fi = re.compile('skey="([^"]+)"')
+        skey = fi.findall("".join(f.readlines()))[0]
+        f.close()
+        str = self.__request(url =urlv,data={"g_tk":get_gtk(skey)},savecookie=True)
         return str
 
     def __getlist(self):
