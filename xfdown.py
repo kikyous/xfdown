@@ -22,7 +22,7 @@ def _(string):
         return string
 
 def _print(str):
-    print (_(str))
+    print (_(str)).encode("utf-8","ignore")
 
 def get_module_path():
     if hasattr(sys, "frozen"):
