@@ -255,7 +255,7 @@ class XF:
                     size="%.1f%s"%(size,_dw)
                     out="%d\t%s\t%s%%\t%s"%(num+1,size,percent,_(self.filename[num]))
                     if num % 2==0 and os.name=='posix':
-                        out="\033[47m%s\033[m"%out
+                        out="\033[m\033[40m%s\033[m"%out
 
                     _print (out)
                 _print ("=======================END=========================\n")
