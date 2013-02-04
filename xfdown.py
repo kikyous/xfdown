@@ -3,68 +3,41 @@
 
 import urwid
 import urwid.raw_display
-import getopt,sys,os,subprocess
+import getopt,sys,os,subprocess,thread,time
 from xfdown_api import XF
-
-
-class SwitchingPadding(urwid.Padding):
-    def padding_values(self, size, focus):
-        maxcol = size[0]
-        width, ignore = self.original_widget.pack(size, focus=focus)
-        if maxcol > width:
-            self.align = "left"
-        else:
-            self.align = "right"
-        return urwid.Padding.padding_values(self, size, focus)
 
 
 class XFdownUi:
     palette = [
         ('body',         'black',      'light gray', 'standout'),
         ('header',       'black',      'light gray', 'standout'),
-        ('footer',       'black',      'light gray', 'standout'),
+        ('footer',       'light gray', 'black'),
         ('button normal','light gray', 'dark blue', 'standout'),
         ('button select','white',      'dark green'),
         ('button disabled','dark gray','dark blue'),
-        ('edit',         'light gray', 'dark blue'),
-        ('bigtext',      'white',      'black'),
-        ('chars',        'light gray', 'black'),
         ('exit',         'white',      'dark cyan'),
+        ('key',          'light cyan', 'black', 'underline'),
+        ('title',        'white',       'black',)
         ]
+    footer_text = [
+      ('key', "UP"), ",", ('key', "DOWN"), "上下移动 ,",
+      ('key', "ENTER"), "下载选中项 ,", ('key', "O"),
+      "在线播放 ,",
+      ('key', "Ctrl+C"), " 退出",
+    ]
         
-    def create_radio_button(self, g=None, name='', font=None, fn=None):
+    def create_checkbox(self, g=None, name='', font=None, fn=None):
         w = urwid.CheckBox(name, False ,False, on_state_change=fn)
         w.font = font
         return w
-
-    def create_disabled_radio_button(self, name):
-        w = urwid.Text("    " + name + " (UTF-8 mode required)")
-        w = urwid.AttrWrap(w, 'button disabled')
-        return w
-    
-    def create_edit(self, label, text, fn):
-        w = urwid.Edit(label, text)
-        urwid.connect_signal(w, 'change', fn)
-        fn(w, text)
-        w = urwid.AttrWrap(w, 'edit')
-        return w
-
-    def set_font_event(self, w, state):
-        if state:
-            self.bigtext.set_font(w.font)
-            self.chars_avail.set_text(w.font.characters())
-
-    def edit_change_event(self, widget, text):
-        self.bigtext.set_text(text)
 
     def setup_view(self):
         # ListBox
         l = []
         self.items = []
         j = xf.getlist()
-        # j =[('','asdf'),('','vvvv'),('','asdf'),('','bbbbbb')]*20
         for size ,percent,name in j:
-            w = self.create_radio_button()
+            w = self.create_checkbox()
             self.items.append(w)
             w = urwid.Columns( [('fixed', 4, w), 
                 ('fixed',7,urwid.Text(size, align='right')),
@@ -72,28 +45,29 @@ class XFdownUi:
                 urwid.Text(name)],1)
 
             w = urwid.AttrWrap(w, 'button normal', 'button select')
-            # w = urwid.AttrWrap(w, 'selectable','focus')
             l.append(w)
 
-
-
         w = urwid.ListBox(urwid.SimpleListWalker(l))
-        # w = urwid.AttrWrap( w, "selectable" )
         
         # Frame
         self.listbox = urwid.AttrWrap(w, 'body')
-        # self.output_widget = urwid.Text("")
-        # w=urwid.Pile([self.listbox,self.output_widget])
-        hdr = urwid.Text("XFdown新UI测试版")
+        hdr = urwid.Text("XFdown Tui Beta\nhttps://github.com/kikyous/xfdown")
         hdr = urwid.AttrWrap(hdr, 'header')
-        self.output_widget=footer = urwid.AttrWrap(urwid.Text('上下移动,空格选择,回车下载选中项目,Ctrl+C退出'),'footer')
-        w = urwid.Frame(header=hdr, body=self.listbox ,footer=footer)
+        self.footer = urwid.AttrWrap(urwid.Text(self.footer_text),'footer')
+        w = urwid.Frame(header=hdr, body=self.listbox ,footer=self.footer)
 
         return w
-    def received_output(self,data):
-      self.output_widget.set_text(data)
-      
 
+
+    def setMsg(self,text=None):
+      if text:
+        self.footer.set_align_mode('right')
+        self.footer.set_text(text)
+        thread.start_new_thread(self.setMsg,())
+      else:
+        time.sleep(2)
+        self.footer.set_align_mode('left')
+        self.footer.set_text(self.footer_text)
 
     def getSelected(self):
         selected=[]
@@ -105,18 +79,18 @@ class XFdownUi:
 
     def input_filter(self,key,raw):
       if key in (['enter'],['o']):
+        self.selected=self.getSelected()
+        if self.selected == []:
+          self.setMsg("没有选中项目")
+          return 
         self.key=key
         raise urwid.ExitMainLoop()
-        # d=ListDialogDisplay('a',10,30,['a','b','c']).view
-        # d = urwid.Overlay(d, self.view, 'center', 25, 'middle', 10)
-        # self.loop.widget = d
       else:
         return key
     def main(self):
         self.view= self.setup_view()
         self.loop = urwid.MainLoop(self.view, self.palette, 
             input_filter = self.input_filter)
-        # self.write_fd = self.loop.watch_pipe(self.received_output)
         self.loop.run()
         self.work()
 
@@ -126,108 +100,6 @@ class XFdownUi:
       elif self.key==['o']:
         xf.online_v(self.getSelected())
     
-    
-class DialogDisplay:
-    palette = [
-        ('body','black','light gray', 'standout'),
-        ('border','black','dark blue'),
-        ('shadow','white','black'),
-        ('selectable','black', 'dark cyan'),
-        ('focus','white','dark blue','bold'),
-        ('focustext','light gray','dark blue'),
-        ]
-        
-    def __init__(self, text, height, width, body=None):
-        width = int(width)
-        if width <= 0:
-            width = ('relative', 80)
-        height = int(height)
-        if height <= 0:
-            height = ('relative', 80)
-    
-        self.body = body
-        if body is None:
-            # fill space with nothing
-            body = urwid.Filler(urwid.Divider(),'top')
-
-        self.frame = urwid.Frame( body, focus_part='footer')
-        if text is not None:
-            self.frame.header = urwid.Pile( [urwid.Text(text),
-                urwid.Divider()] )
-        w = self.frame
-        
-        # pad area around listbox
-        w = urwid.Padding(w, ('fixed left',2), ('fixed right',2))
-        w = urwid.Filler(w, ('fixed top',1), ('fixed bottom',1))
-        w = urwid.AttrWrap(w, 'body')
-        
-        # "shadow" effect
-        w = urwid.Columns( [w,('fixed', 2, urwid.AttrWrap(
-            urwid.Filler(urwid.Text(('border','  ')), "top")
-            ,'shadow'))])
-        w = urwid.Frame( w, footer = 
-                        urwid.AttrWrap(urwid.Text(('border','  ')),'shadow'))
-
-        # outermost border area
-        w = urwid.Padding(w, 'center', width )
-        w = urwid.Filler(w, 'middle', height )
-        w = urwid.AttrWrap( w, 'border' )
-        
-        self.view = w
-
-
-    def add_buttons(self, buttons):
-        l = []
-        for name, exitcode in buttons:
-            b = urwid.Button( name, self.button_press )
-            b.exitcode = exitcode
-            b = urwid.AttrWrap( b, 'selectable','focus' )
-            l.append( b )
-        self.buttons = urwid.GridFlow(l, 10, 3, 1, 'center')
-        self.frame.footer = urwid.Pile( [ urwid.Divider(),
-            self.buttons ], focus_item = 1)
-
-    def button_press(self, button):
-        raise DialogExit(button.exitcode)
-
-    def main(self):
-        self.loop = urwid.MainLoop(self.view, self.palette)
-        
-        try:
-            self.loop.run()
-        except DialogExit, e:
-            return self.on_exit( e.args[0] )
-        
-    def on_exit(self, exitcode):
-        return exitcode, ""
-class ListDialogDisplay(DialogDisplay):
-    def __init__(self, text, height, width, items):
-        self.items=[]
-        l=[]
-        for item in items:
-            w = urwid.Text(item)
-            w = urwid.AttrWrap(w, 'selectable','focus')
-            self.items.append(w)
-            l.append(w)
-
-        lb = urwid.ListBox(l)
-        lb = urwid.AttrWrap( lb, "selectable" )
-        DialogDisplay.__init__(self, text, height, width, lb )
-        
-    
-
-    def on_exit(self, exitcode):
-        """Print the tag of the item selected."""
-        if exitcode != 0:
-            return exitcode, ""
-        s = ""
-        for i in self.items:
-            if i.get_state():
-                s = i.get_label()
-                break
-        return exitcode, s
-
-
 
 def main():
     XFdownUi().main()
