@@ -21,6 +21,7 @@ class XFdownUi:
         ]
     footer_text = [
       ('key', "UP"), ",", ('key', "DOWN"), "上下移动 ,",
+      ('key', "SPACE"), "选择项目 ,",
       ('key', "ENTER"), "下载选中项 ,", ('key', "O"),
       "在线播放 ,",
       ('key', "Ctrl+C"), " 退出",
