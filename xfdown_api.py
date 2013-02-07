@@ -1,6 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import division
+import cPickle as pickle
+import socket
+
+origGetAddrInfo = socket.getaddrinfo
+try:
+  with open("cache.dat", "rb") as f:
+    dnscache=pickle.load(f)
+except:
+  dnscache={}
+
+def getAddrInfoWrapper(host, port, family=0, socktype=0, proto=0, flags=0):
+  if dnscache.has_key(host):
+    return dnscache[host]
+  else:
+    dns=origGetAddrInfo(host, port, family, socktype, proto, flags)
+    dnscache[host]=dns
+    pickle.dump(dnscache, open("cache.dat", "wb") , True)
+    return dns
+
+socket.getaddrinfo = getAddrInfoWrapper
 
 import subprocess
 try:
@@ -237,7 +257,7 @@ class XF:
             得到任务名与hash值
             """
             urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_list.php'
-            res = self.__request(urlv,{})
+            res = self.__request(urlv)
             res = json.JSONDecoder().decode(res)
             result = []
             if res["msg"]==_('未登录!'):
@@ -332,9 +352,6 @@ class XF:
 
                     
     def __Login(self,needinput=False,verify=False):
-        """
-        登录
-        """
         if not needinput and not verify:
             try:
                 f=open(self.__cookiepath)
