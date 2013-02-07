@@ -102,8 +102,6 @@ class XFdownUi:
         xf.online_v(self.getSelected())
     
 
-def main():
-    XFdownUi().main()
     
 if '__main__'==__name__:
   def usage():
@@ -130,7 +128,7 @@ if '__main__'==__name__:
         if not os.path.exists(xf._downpath):
           os.makedirs(xf._downpath)
 
-      main()
+      XFdownUi().main()
   except KeyboardInterrupt:
     print (" exit now.")
     sys.exit(2)
