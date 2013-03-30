@@ -267,7 +267,7 @@ class XF:
                 else:
                     return self.getlist()
             elif not res["data"]:
-                print (_('无离线任务!'))
+                _print('无离线任务!')
                 self.__addtask()
                 self.main()
             else:
