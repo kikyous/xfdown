@@ -23,6 +23,9 @@ python xfdown.py
 或直接用系统包管理器安装
 `sudo apt-get install python-urwid`
 
+安装aria2
+`sudo apt-get install aria2c`
+
 * 运行:
 
 `python xfdown.py`

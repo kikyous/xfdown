@@ -111,18 +111,12 @@ class XF:
         self.gethttp(lists)
         cmds=[]
         for i in lists:
-            cmd="aria2c -c -s10 -x10 --header 'Cookie:ptisp=edu; FTN5K=%s' '%s'"%(self.filecom[i],self.filehttp[i])
-            if sys.version_info >= (3,0):
-                pass
-            else:
-                cmd=cmd.encode("u8")
-            # cmd=['aria2c', '-d%s'%xf._downpath,'-c', '-s10', '-x10', '--header', 'Cookie:ptisp=edu; FTN5K=%s'%xf.filecom[i], '%s'%xf.filehttp[i]]
+            cmd=['aria2c', '-c', '-s10', '-x10', '--header', 'Cookie:ptisp=edu; FTN5K=%s'%self.filecom[i], '%s'%self.filehttp[i]]
 
             cmds.append(cmd)
 
         for i in cmds:
-            # subprocess.Popen(i)
-            os.system("cd %s && %s"%(self._downpath,i))
+            subprocess.Popen(i,cwd=self._downpath).wait()
             try:
                 subprocess.Popen(["notify-send","xfdown: 下载完成!"])
             except:

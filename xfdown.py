@@ -101,7 +101,6 @@ class XFdownUi:
       elif self.key==['o']:
         xf.online_v(self.getSelected())
     
-
     
 if '__main__'==__name__:
   def usage():
@@ -124,9 +123,13 @@ if '__main__'==__name__:
         else:
           assert False, "unhandled option"
       if not hasattr(xf,"_downpath"):
-        xf._downpath = os.path.expanduser("~/下载")
-        if not os.path.exists(xf._downpath):
-          os.makedirs(xf._downpath)
+        import locale
+        if 'zh_CN' in locale.getdefaultlocale():
+          xf._downpath = os.path.expanduser("~/下载")
+        else:
+          xf._downpath = os.path.expanduser("~/Downloads")
+      if not os.path.exists("%s"%xf._downpath):
+        os.makedirs("%s"%xf._downpath)
 
       XFdownUi().main()
   except KeyboardInterrupt:
