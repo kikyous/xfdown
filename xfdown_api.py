@@ -250,8 +250,8 @@ class XF:
             """
             得到任务名与hash值
             """
-            urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_list.php'
-            res = self.__request(urlv)
+            urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_items.php'
+            res = self.__request(urlv, {'page': 0, 'limit': 500})
             res = json.JSONDecoder().decode(res)
             result = []
             if res["msg"]==_('未登录!'):
@@ -273,7 +273,7 @@ class XF:
                 for num in range(len(res['data'])):
                     index=res['data'][num]
                     self.filename.append(index['file_name'].encode("u8"))
-                    self.filehash.append(index['code'])
+                    self.filehash.append(index['hash'])
                     size=index['file_size']
                     self.filemid.append(index['mid'])
                     if size==0:
