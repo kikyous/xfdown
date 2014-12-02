@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import urwid
@@ -20,11 +20,11 @@ class XFdownUi:
         ('title',        'white',       'black',)
         ]
     footer_text = [
-      ('key', "UP"), ",", ('key', "DOWN"), "上下移动 ,",
+      ('key', "UP或K"), ",", ('key', "DOWN或J"), "上下移动 ,",
       ('key', "SPACE"), "选择项目 ,",
       ('key', "ENTER"), "下载选中项 ,", ('key', "O"),
       "在线播放 ,",
-      ('key', "Ctrl+C"), " 退出",
+      ('key', "Q"), " 退出",
     ]
         
     def create_checkbox(self, g=None, name='', font=None, fn=None):
@@ -86,6 +86,15 @@ class XFdownUi:
           return 
         self.key=key
         raise urwid.ExitMainLoop()
+      elif key==['q']:
+        self.key=key
+        raise urwid.ExitMainLoop()
+      elif key in (['j'],['k']):
+        if key==['j']:
+	  key=['down']
+        elif key==['k']:
+	  key=['up']
+	return key
       else:
         return key
     def main(self):
@@ -100,7 +109,9 @@ class XFdownUi:
         xf.download(self.getSelected())
       elif self.key==['o']:
         xf.online_v(self.getSelected())
-    
+      elif self.key==['q']:
+        print (" exit now.")
+        exit(0)    
     
 if '__main__'==__name__:
   def usage():

@@ -1,12 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 from __future__ import division
 import cPickle as pickle
 import socket
+import os
+
+cachefile=os.path.expanduser('~/.xfdown.cache')
 
 origGetAddrInfo = socket.getaddrinfo
 try:
-  with open("cache.dat", "rb") as f:
+  with open(cachefile, "rb") as f:
     dnscache=pickle.load(f)
 except:
   dnscache={}
@@ -17,7 +20,7 @@ def getAddrInfoWrapper(host, port, family=0, socktype=0, proto=0, flags=0):
   else:
     dns=origGetAddrInfo(host, port, family, socktype, proto, flags)
     dnscache[host]=dns
-    pickle.dump(dnscache, open("cache.dat", "wb") , True)
+    pickle.dump(dnscache, open(cachefile, "wb") , True)
     return dns
 
 socket.getaddrinfo = getAddrInfoWrapper
@@ -90,8 +93,8 @@ class LWPCookieJar(cookiejar.LWPCookieJar):
 class XF:
     _player="totem"
 
-    __cookiepath = '%s/cookie'%module_path
-    __verifyimg  = '%s/verify.jpg'%module_path
+    __cookiepath = os.path.expanduser('~/.xfdown.cookie')
+    __verifyimg  = os.path.expanduser('~/.xfdown.verify.jpg')
     __RE=re.compile("(\d+) *([^\d ]+)?")
 
 
