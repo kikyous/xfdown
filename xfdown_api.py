@@ -263,14 +263,12 @@ class XF:
                     self.__Login()
                 else:
                     return self.getlist()
-            elif not res["data"]:
-                _print('无离线任务!')
-                self.__addtask()
-                self.main()
             else:
                 self.filename = []
                 self.filehash = []
                 self.filemid = []
+                if not res["data"]:
+                    return result
                 res['data'].sort(key=lambda x: x["file_name"])
                 # _print ("序号\t大小\t进度\t文件名")
                 for num in range(len(res['data'])):
@@ -310,27 +308,11 @@ class XF:
         self.filecom[num]=(re.search(r'\"com_cookie":\"(.+?)\"\,\"',str).group(1))
        
 
-    def __deltask(self):
-        _print ("请输入要删除的任务序号,数字之间用空格,逗号或其他非数字字符号分割.\n输入A删除所有任务:")
-        target=raw_input("dt # ").strip()
-        if target.upper()=="A":
-            lists=zip(range(1,len(self.filehash)+1) , ['']* len(self.filehash))
-        elif '-' in target:
-            nums = []
-            for i in target.split():
-                ran = target.split('-')
-                nums.extend(range(int(ran[0]),int(ran[1])+1))
-            lists = zip(nums , [''] * len(nums))
-        else:
-            lists=self.__RE.findall(target)
-        if lists==[]:
-            _print ("选择为空.")
-            self.__chosetask()
+    def deltask(self,lists):
         urlv = 'http://lixian.qq.com/handler/lixian/del_lixian_task.php'
 
         for i in lists:
-            num=int(i[0])-1
-            data={'mids':self.filemid[num]}
+            data={'mids':self.filemid[i]}
             self.__request(urlv,data)
         _print("任务删除完成")
 
