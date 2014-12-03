@@ -9,11 +9,12 @@ from xfdown_api import XF
 
 class XFdownUi:
     palette = [
-        ('body',         'black',      'light gray', 'standout'),
+        ('body',         '',      '', 'standout'),
         ('header',       'black',      'light gray', 'standout'),
         ('footer',       'light gray', 'black'),
-        ('button normal','light gray', 'dark blue', 'standout'),
+        ('button normal','', '', 'standout'),
         ('button select','white',      'dark green'),
+        ('button selected','white',      'dark blue'),
         ('button disabled','dark gray','dark blue'),
         ('exit',         'white',      'dark cyan'),
         ('key',          'light cyan', 'black', 'underline'),
@@ -22,7 +23,7 @@ class XFdownUi:
     footer_text = [
       ('key', "UP或K"), ",", ('key', "DOWN或J"), "上下移动 ,",
       ('key', "SPACE"), "选择项目 ,",
-      ('key', "ENTER"), "下载选中项 ,", ('key', "O"),
+      ('key', "ENTER"), "下载项目 ,", ('key', "D"), "删除项目 ,",('key', "O"),
       "在线播放 ,",
       ('key', "Q"), " 退出",
     ]
@@ -79,7 +80,7 @@ class XFdownUi:
 
 
     def input_filter(self,key,raw):
-      if key in (['enter'],['o']):
+      if key in (['enter'],['o'],['d']):
         self.selected=self.getSelected()
         if self.selected == []:
           self.setMsg("没有选中项目")
@@ -107,6 +108,10 @@ class XFdownUi:
     def work(self):
       if self.key==['enter']:
         xf.download(self.getSelected())
+      elif self.key==['d']:
+        xf.deltask(self.getSelected())
+        self.setMsg("删除成功")
+        self.loop.run()
       elif self.key==['o']:
         xf.online_v(self.getSelected())
       elif self.key==['q']:
