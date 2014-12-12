@@ -24,9 +24,10 @@ class XFdownUi:
     footer_text = [
       ('key', "UP或K"), ",", ('key', "DOWN或J"), "上下移动 ,",
       ('key', "SPACE"), "选择项目 ,",
-      ('key', "ENTER"), "下载项目 ,", ('key', "D"), "删除项目 ,",('key', "O"),
-      "在线播放 ,",
-      ('key', "Q"), " 退出",
+      ('key', "ENTER"), "下载项目 ,",
+      ('key', "D"),     "删除项目 ,",
+      ('key', "O"),     "在线播放 ,",
+      ('key', "Q"),     " 退出",
     ]
         
     def create_checkbox(self, g=None, name='', font=None, fn=None):
