@@ -116,7 +116,7 @@ class XFdownUi:
         xf.online_v(self.getSelected())
       elif self.key==['q']:
         print (" exit now.")
-        exit(0)    
+        exit(0)
     
 if '__main__'==__name__:
   def usage():

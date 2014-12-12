@@ -254,7 +254,7 @@ class XF:
             得到任务名与hash值
             """
             urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_items.php'
-            res = self.__request(urlv, {'page': 0, 'limit': 500})
+            res = self.__request(urlv, {'page': 0, 'limit': 200})
             res = json.JSONDecoder().decode(res)
             result = []
             if res["msg"]==_('未登录!'):
