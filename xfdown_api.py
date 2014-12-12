@@ -114,7 +114,7 @@ class XF:
         self.gethttp(lists)
         cmds=[]
         for i in lists:
-            cmd=['aria2c', '-c', '-s10', '-x10', '--header', 'Cookie:ptisp=edu; FTN5K=%s'%self.filecom[i], '%s'%self.filehttp[i]]
+            cmd=['aria2c', '-c', '-s10', '-x10', '--header', 'Cookie: FTN5K=%s'%self.filecom[i], '%s'%self.filehttp[i]]
 
             cmds.append(cmd)
 
@@ -269,13 +269,16 @@ class XF:
                 self.filemid = []
                 if not res["data"]:
                     return result
-                res['data'].sort(key=lambda x: x["file_name"])
+                #res['data'].sort(key=lambda x: x["file_name"])
                 # _print ("序号\t大小\t进度\t文件名")
                 for num in range(len(res['data'])):
                     index=res['data'][num]
                     self.filename.append(index['file_name'].encode("u8"))
                     self.filehash.append(index['hash'])
                     size=index['file_size']
+                    status=index['dl_status']
+                    fileurl=index['file_url']
+                    tasktype=index['task_type']
                     self.filemid.append(index['mid'])
                     if size==0:
                         percent="-0"
@@ -290,7 +293,7 @@ class XF:
                         else:
                             break
                     size="%.1f%s"%(size,_dw)
-                    item=(size,percent,_(self.filename[num]))
+                    item=(size,percent,_(self.filename[num]),status,tasktype,fileurl)
                     result.append(item)
             return result
 

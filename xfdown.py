@@ -13,8 +13,9 @@ class XFdownUi:
         ('header',       'black',      'light gray', 'standout'),
         ('footer',       'light gray', 'black'),
         ('button normal','', '', 'standout'),
+        ('button downloading','dark blue', '', 'standout'),
+        ('button checking','yellow', '', 'standout'),
         ('button select','white',      'dark green'),
-        ('button selected','white',      'dark blue'),
         ('button disabled','dark gray','dark blue'),
         ('exit',         'white',      'dark cyan'),
         ('key',          'light cyan', 'black', 'underline'),
@@ -38,7 +39,7 @@ class XFdownUi:
         l = []
         self.items = []
         j = xf.getlist()
-        for size ,percent,name in j:
+        for size,percent,name,status,tasktype,fileurl in j:
             w = self.create_checkbox()
             self.items.append(w)
             w = urwid.Columns( [('fixed', 4, w), 
@@ -46,7 +47,13 @@ class XFdownUi:
                 ('fixed',6,urwid.Text(percent+'%', align='right')),
                 urwid.Text(name)],1)
 
-            w = urwid.AttrWrap(w, 'button normal', 'button select')
+            if status == 12:
+                w = urwid.AttrWrap(w, 'button normal', 'button select')
+            elif status == 6:
+                w = urwid.AttrWrap(w, 'button downloading', 'button select')
+            elif status == 8:
+                w = urwid.AttrWrap(w, 'button checking', 'button select')
+
             l.append(w)
 
         w = urwid.ListBox(urwid.SimpleListWalker(l))
