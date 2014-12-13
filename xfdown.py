@@ -10,11 +10,12 @@ from xfdown_api import XF
 class XFdownUi:
     palette = [
         ('body',         '',      '', 'standout'),
-        ('header',       'black',      'light gray', 'standout'),
+        ('header',       'light cyan', 'black', 'standout'),
         ('footer',       'light gray', 'black'),
         ('button normal','', '', 'standout'),
         ('button downloading','dark blue', '', 'standout'),
         ('button checking','yellow', '', 'standout'),
+        ('button failed','dark red', '', 'standout'),
         ('button select','white',      'dark green'),
         ('button disabled','dark gray','dark blue'),
         ('exit',         'white',      'dark cyan'),
@@ -54,6 +55,8 @@ class XFdownUi:
                 w = urwid.AttrWrap(w, 'button downloading', 'button select')
             elif status == 8:
                 w = urwid.AttrWrap(w, 'button checking', 'button select')
+            elif status == 7:
+                w = urwid.AttrWrap(w, 'button failed', 'button select')
 
             l.append(w)
 
