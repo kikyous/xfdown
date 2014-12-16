@@ -240,7 +240,7 @@ class XF:
             filename=url.split("/")[-1]
         return filename.split("?")[0]
     def __getlogin(self):
-        self.__request(url ="http://lixian.qq.com/handler/lixian/check_tc.php",data={},savecookie=True)
+        self.__request(url ="http://lixian.qq.com/handler/log_handler.php",data={'cmd': 'stat'},savecookie=True)
         urlv = 'http://lixian.qq.com/handler/lixian/do_lixian_login.php'
         f=open(self.__cookiepath)
         fi = re.compile('skey="([^"]+)"')
@@ -317,7 +317,6 @@ class XF:
         for i in lists:
             data={'mids':self.filemid[i]}
             self.__request(urlv,data)
-        _print("任务删除完成")
 
                     
     def __addtask(self):
