@@ -118,8 +118,7 @@ class XFdownUi:
         xf.download(self.getSelected())
       elif self.key==['d']:
         xf.deltask(self.getSelected())
-        self.setMsg("删除成功")
-        self.loop.run()
+        self.main()
       elif self.key==['o']:
         xf.online_v(self.getSelected())
       elif self.key==['q']:
