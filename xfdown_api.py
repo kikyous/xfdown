@@ -114,7 +114,7 @@ class XF:
         self.gethttp(lists)
         cmds=[]
         for i in lists:
-            cmd=['aria2c', '-c', '-s10', '-x10', '--header', 'Cookie:ptisp=edu; FTN5K=%s'%self.filecom[i], '%s'%self.filehttp[i]]
+            cmd=['aria2c', '-c', '-s10', '-x10', '--header', 'Cookie: FTN5K=%s'%self.filecom[i], '%s'%self.filehttp[i]]
 
             cmds.append(cmd)
 
@@ -240,7 +240,7 @@ class XF:
             filename=url.split("/")[-1]
         return filename.split("?")[0]
     def __getlogin(self):
-        self.__request(url ="http://lixian.qq.com/handler/lixian/check_tc.php",data={},savecookie=True)
+        self.__request(url ="http://lixian.qq.com/handler/log_handler.php",data={'cmd': 'stat'},savecookie=True)
         urlv = 'http://lixian.qq.com/handler/lixian/do_lixian_login.php'
         f=open(self.__cookiepath)
         fi = re.compile('skey="([^"]+)"')
@@ -254,7 +254,7 @@ class XF:
             得到任务名与hash值
             """
             urlv = 'http://lixian.qq.com/handler/lixian/get_lixian_items.php'
-            res = self.__request(urlv, {'page': 0, 'limit': 500})
+            res = self.__request(urlv, {'page': 0, 'limit': 200})
             res = json.JSONDecoder().decode(res)
             result = []
             if res["msg"]==_('未登录!'):
@@ -269,13 +269,16 @@ class XF:
                 self.filemid = []
                 if not res["data"]:
                     return result
-                res['data'].sort(key=lambda x: x["file_name"])
+                #res['data'].sort(key=lambda x: x["file_name"])
                 # _print ("序号\t大小\t进度\t文件名")
                 for num in range(len(res['data'])):
                     index=res['data'][num]
                     self.filename.append(index['file_name'].encode("u8"))
                     self.filehash.append(index['hash'])
                     size=index['file_size']
+                    status=index['dl_status']
+                    fileurl=index['file_url']
+                    tasktype=index['task_type']
                     self.filemid.append(index['mid'])
                     if size==0:
                         percent="-0"
@@ -290,7 +293,7 @@ class XF:
                         else:
                             break
                     size="%.1f%s"%(size,_dw)
-                    item=(size,percent,_(self.filename[num]))
+                    item=(size,percent,_(self.filename[num]),status,tasktype,fileurl)
                     result.append(item)
             return result
 
@@ -314,7 +317,6 @@ class XF:
         for i in lists:
             data={'mids':self.filemid[i]}
             self.__request(urlv,data)
-        _print("任务删除完成")
 
                     
     def __addtask(self):

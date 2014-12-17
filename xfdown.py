@@ -10,11 +10,13 @@ from xfdown_api import XF
 class XFdownUi:
     palette = [
         ('body',         '',      '', 'standout'),
-        ('header',       'black',      'light gray', 'standout'),
+        ('header',       'light cyan', 'black', 'standout'),
         ('footer',       'light gray', 'black'),
         ('button normal','', '', 'standout'),
+        ('button downloading','dark blue', '', 'standout'),
+        ('button checking','yellow', '', 'standout'),
+        ('button failed','dark red', '', 'standout'),
         ('button select','white',      'dark green'),
-        ('button selected','white',      'dark blue'),
         ('button disabled','dark gray','dark blue'),
         ('exit',         'white',      'dark cyan'),
         ('key',          'light cyan', 'black', 'underline'),
@@ -23,9 +25,10 @@ class XFdownUi:
     footer_text = [
       ('key', "UP或K"), ",", ('key', "DOWN或J"), "上下移动 ,",
       ('key', "SPACE"), "选择项目 ,",
-      ('key', "ENTER"), "下载项目 ,", ('key', "D"), "删除项目 ,",('key', "O"),
-      "在线播放 ,",
-      ('key', "Q"), " 退出",
+      ('key', "ENTER"), "下载项目 ,",
+      ('key', "D"),     "删除项目 ,",
+      ('key', "O"),     "在线播放 ,",
+      ('key', "Q"),     " 退出",
     ]
         
     def create_checkbox(self, g=None, name='', font=None, fn=None):
@@ -38,7 +41,7 @@ class XFdownUi:
         l = []
         self.items = []
         j = xf.getlist()
-        for size ,percent,name in j:
+        for size,percent,name,status,tasktype,fileurl in j:
             w = self.create_checkbox()
             self.items.append(w)
             w = urwid.Columns( [('fixed', 4, w), 
@@ -46,7 +49,15 @@ class XFdownUi:
                 ('fixed',6,urwid.Text(percent+'%', align='right')),
                 urwid.Text(name)],1)
 
-            w = urwid.AttrWrap(w, 'button normal', 'button select')
+            if status == 12:
+                w = urwid.AttrWrap(w, 'button normal', 'button select')
+            elif status == 6:
+                w = urwid.AttrWrap(w, 'button downloading', 'button select')
+            elif status == 8:
+                w = urwid.AttrWrap(w, 'button checking', 'button select')
+            elif status == 7:
+                w = urwid.AttrWrap(w, 'button failed', 'button select')
+
             l.append(w)
 
         w = urwid.ListBox(urwid.SimpleListWalker(l))
@@ -110,13 +121,12 @@ class XFdownUi:
         xf.download(self.getSelected())
       elif self.key==['d']:
         xf.deltask(self.getSelected())
-        self.setMsg("删除成功")
-        self.loop.run()
+        self.main()
       elif self.key==['o']:
         xf.online_v(self.getSelected())
       elif self.key==['q']:
         print (" exit now.")
-        exit(0)    
+        exit(0)
     
 if '__main__'==__name__:
   def usage():
