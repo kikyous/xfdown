@@ -12,7 +12,8 @@ class XFdownUi:
         ('body',         '',      '', 'standout'),
         ('header',       'light cyan', 'black', 'standout'),
         ('footer',       'light gray', 'black'),
-        ('button normal','', '', 'standout'),
+        ('button normal','dark green', '', 'standout'),
+        ('button waiting','', '', 'standout'),
         ('button downloading','dark blue', '', 'standout'),
         ('button checking','yellow', '', 'standout'),
         ('button failed','dark red', '', 'standout'),
@@ -40,7 +41,12 @@ class XFdownUi:
         # ListBox
         l = []
         self.items = []
-        j = xf.getlist()
+        try:
+            j = xf.getlist()
+        except:
+            xf.Login(True)
+            j = xf.getlist()
+
         for size,percent,name,status,tasktype,fileurl in j:
             w = self.create_checkbox()
             self.items.append(w)
@@ -51,6 +57,8 @@ class XFdownUi:
 
             if status == 12:
                 w = urwid.AttrWrap(w, 'button normal', 'button select')
+            elif status == 5:
+                w = urwid.AttrWrap(w, 'button waiting', 'button select')
             elif status == 6:
                 w = urwid.AttrWrap(w, 'button downloading', 'button select')
             elif status == 8:
