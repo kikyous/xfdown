@@ -3,8 +3,7 @@
 from __future__ import division
 import cPickle as pickle
 import socket
-import os
-
+import os, sys, stat
 cachefile=os.path.expanduser('~/.xfdown.cache')
 
 origGetAddrInfo = socket.getaddrinfo
@@ -94,6 +93,7 @@ class XF:
     _player="totem"
 
     __cookiepath = os.path.expanduser('~/.xfdown.cookie')
+    __configpath = os.path.expanduser('~/.xfdown.config')
     __verifyimg  = os.path.expanduser('~/.xfdown.verify.jpg')
     __RE=re.compile("(\d+) *([^\d ]+)?")
 
@@ -165,7 +165,7 @@ class XF:
         request.install_opener(opener)
         
         if not cookieload:
-            self.__Login(True)
+            self.Login(True)
     def __request(self,url,data=None,savecookie=False):
         """
             请求url
@@ -210,6 +210,22 @@ class XF:
             
         return verify
 
+    def __load_config(self):
+
+        os.chmod(self.__configpath , stat.S_IREAD|stat.S_IWRITE)
+        config_file=open(self.__configpath)
+        config=json.load(config_file)
+        return config
+
+
+    def __save_config(self):
+        self.__load_config()
+        config={"qq":self.__qq, "password":self.pswd}
+        config_file=open(self.__configpath,"w")
+        json.dump(config,config_file)
+        config_file.close()
+        os.chmod(self.__configpath , stat.S_IREAD|stat.S_IWRITE)
+
 
     def __request_login(self):
 
@@ -217,17 +233,18 @@ class XF:
         str = self.__request(url = urlv)
         if str.find(_('登录成功')) != -1:
             self.__getlogin()
+            self.__save_config()
             return True
         elif str.find(_('验证码不正确')) != -1:
             self.__getverifycode()
-            self.__Login(False,True)
+            self.Login(False,True)
         elif str.find(_('不正确')) != -1:
             _print('你输入的帐号或者密码不正确，请重新输入。')
-            self.__Login(True)
+            self.Login(True)
         else:
             #print('登录失败')
             _print(str)
-            self.__Login(True)
+            self.Login(True)
 
     def getfilename_url(self,url):
         url=url.strip()
@@ -260,7 +277,7 @@ class XF:
             if res["msg"]==_('未登录!'):
                 res=json.JSONDecoder().decode(self.__getlogin())
                 if res["msg"]==_('未登录!'):
-                    self.__Login()
+                    self.Login()
                 else:
                     return self.getlist()
             else:
@@ -316,7 +333,9 @@ class XF:
 
         for i in lists:
             data={'mids':self.filemid[i]}
-            self.__request(urlv,data)
+            ret=json.loads(self.__request(urlv,data))
+            if ret['ret']== -1:
+                self.Login()
 
                     
     def __addtask(self):
@@ -332,17 +351,13 @@ class XF:
 
 
                     
-    def __Login(self,needinput=False,verify=False):
+    def Login(self,needinput=False,verify=False):
         if not needinput and not verify:
-            try:
-                f=open(self.__cookiepath)
-                line=f.readlines()[1].strip()
-                lists=line.split("#")
-                self.__qq=lists[1]
-                self.hashpasswd=lists[2]
-            finally:
-                f.close()
-        if not hasattr(self,"hashpasswd") or needinput:
+            if os.path.isfile(self.__configpath):
+                config=self.__load_config()
+                self.__qq=config['qq']
+                self.pswd=config['password']
+        if not hasattr(self,"pswd") or needinput:
             self.__qq = raw_input('QQ：')
             import getpass
             self.pswd= getpass.getpass('PASSWD: ')
